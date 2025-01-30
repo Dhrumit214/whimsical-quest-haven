@@ -41,12 +41,12 @@ const GameTile: React.FC<GameTileProps> = ({
         ${tile.value === 0 ? "invisible" : ""}
         ${
           isSelected
-            ? "bg-[#FEF7CD] text-amber-700 ring-2 ring-yellow-400"
+            ? "bg-[#E6B800] text-amber-50 ring-2 ring-yellow-400"
             : tile.isAnimating
             ? "animate-scale-in"
             : tile.isCorrect
-            ? "bg-gradient-to-br from-[#F2FCE2] to-[#D4E8C1] text-green-700"
-            : "bg-gradient-to-br from-[#E5DEFF] to-[#C5B8FF] text-indigo-700 hover:from-[#E8E2FF] hover:to-[#CAC0FF]"
+            ? "bg-gradient-to-br from-[#2F4F2F] to-[#1B2E1B] text-green-100"
+            : "bg-gradient-to-br from-[#4A3B8C] to-[#2C1B6E] text-indigo-100 hover:from-[#5A4B9C] hover:to-[#3C2B7E]"
         }
         rounded-lg
         font-['Nunito']
