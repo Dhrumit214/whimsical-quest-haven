@@ -108,20 +108,29 @@ const NumberPuzzle = () => {
             gridTemplateColumns: `repeat(${gameState.gridSize}, minmax(0, 1fr))`,
           }}
         >
-          {gameState.tiles.map((tile) => (
-            <Button
-              key={tile.id}
-              onClick={() => moveTile(tile.position)}
-              className={`w-full h-20 text-2xl font-bold transition-all duration-300 transform hover:scale-105 ${
-                tile.value === 0
-                  ? "invisible"
-                  : "bg-game-primary hover:bg-game-primary/90"
-              }`}
-              disabled={gameState.gameCompleted}
-            >
-              {tile.value || ""}
-            </Button>
-          ))}
+          {gameState.tiles.map((tile) => {
+            const row = Math.floor(tile.position / gameState.gridSize);
+            const col = tile.position % gameState.gridSize;
+            
+            return (
+              <Button
+                key={tile.id}
+                onClick={() => moveTile(tile.position)}
+                className={`w-full h-20 text-2xl font-bold transition-all duration-300 transform hover:scale-105 ${
+                  tile.value === 0
+                    ? "invisible"
+                    : "bg-game-primary hover:bg-game-primary/90"
+                }`}
+                style={{
+                  gridRow: row + 1,
+                  gridColumn: col + 1,
+                }}
+                disabled={gameState.gameCompleted}
+              >
+                {tile.value || ""}
+              </Button>
+            );
+          })}
         </div>
       </div>
     </div>
