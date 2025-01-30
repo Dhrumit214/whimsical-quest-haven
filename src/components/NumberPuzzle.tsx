@@ -192,10 +192,18 @@ const NumberPuzzle = () => {
     } else {
       const newTiles = gameState.tiles.map(tile => {
         if (tile.position === selectedTile) {
-          return { ...tile, position: tilePosition };
+          return { 
+            ...tile, 
+            position: tilePosition,
+            isAnimating: true 
+          };
         }
         if (tile.position === tilePosition) {
-          return { ...tile, position: selectedTile };
+          return { 
+            ...tile, 
+            position: selectedTile,
+            isAnimating: true 
+          };
         }
         return tile;
       });
@@ -206,9 +214,20 @@ const NumberPuzzle = () => {
         moves: gameState.moves + 1,
       });
 
+      // Reset animation flags after animation completes
+      setTimeout(() => {
+        setGameState(prev => ({
+          ...prev,
+          tiles: prev.tiles.map(tile => ({
+            ...tile,
+            isAnimating: false
+          }))
+        }));
+      }, 300);
+
       setPowerUpActive(false);
       setSelectedTile(null);
-      toast.success("Tile moved successfully!");
+      toast.success("Tiles switched successfully!");
     }
   };
 
@@ -314,6 +333,8 @@ const NumberPuzzle = () => {
                   ${
                     selectedTile === tile.position
                       ? "ring-2 ring-yellow-400"
+                      : tile.isAnimating
+                      ? "animate-scale-in"
                       : hintTile === tile.position
                       ? "bg-game-accent hover:bg-game-accent/90 animate-pulse"
                       : tile.isCorrect
