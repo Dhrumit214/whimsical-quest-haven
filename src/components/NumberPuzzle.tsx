@@ -14,6 +14,7 @@ const NumberPuzzle = () => {
     gridSize: 3,
   });
   const [hintTile, setHintTile] = useState<number | null>(null);
+  const [previousHints, setPreviousHints] = useState<Set<number>>(new Set());
 
   const initializeGame = () => {
     const totalTiles = gameState.gridSize * gameState.gridSize;
@@ -56,22 +57,27 @@ const NumberPuzzle = () => {
     let bestScore = -Infinity;
 
     movableTiles.forEach((tile) => {
-      // Calculate how far this tile is from its correct position
+      // Skip if this tile was recently suggested
+      if (previousHints.has(tile.position)) {
+        return;
+      }
+
       const currentRow = Math.floor(tile.position / gameState.gridSize);
       const currentCol = tile.position % gameState.gridSize;
       const targetRow = Math.floor((tile.value - 1) / gameState.gridSize);
       const targetCol = (tile.value - 1) % gameState.gridSize;
       const currentDistance = Math.abs(currentRow - targetRow) + Math.abs(currentCol - targetCol);
 
-      // Calculate where the tile would be after moving
+      // Only consider tiles that aren't in their correct position
+      if (currentDistance === 0) {
+        return;
+      }
+
       const newRow = Math.floor(emptyTile.position / gameState.gridSize);
       const newCol = emptyTile.position % gameState.gridSize;
       const newDistance = Math.abs(newRow - targetRow) + Math.abs(newCol - targetCol);
 
-      // Score is better if moving the tile gets it closer to its target position
       const improvement = currentDistance - newDistance;
-      
-      // Add a bonus for tiles that are further from their target position
       const score = improvement + (currentDistance / 10);
 
       if (score > bestScore) {
@@ -80,6 +86,12 @@ const NumberPuzzle = () => {
       }
     });
 
+    // If no good moves found, clear previous hints and try again
+    if (!bestTile && previousHints.size > 0) {
+      setPreviousHints(new Set());
+      return findBestMove();
+    }
+
     return bestTile?.position ?? null;
   };
 
@@ -87,7 +99,8 @@ const NumberPuzzle = () => {
     const bestMove = findBestMove();
     if (bestMove !== null) {
       setHintTile(bestMove);
-      setTimeout(() => setHintTile(null), 2000); // Clear hint after 2 seconds
+      setPreviousHints(prev => new Set([...prev, bestMove]));
+      setTimeout(() => setHintTile(null), 2000);
     }
   };
 
@@ -111,7 +124,8 @@ const NumberPuzzle = () => {
 
     if (!canMoveTile(tilePosition, emptyTile.position)) return;
 
-    setHintTile(null); // Clear hint when a move is made
+    setHintTile(null);
+    setPreviousHints(new Set()); // Clear previous hints after a move
 
     const newTiles = gameState.tiles.map((tile) => {
       if (tile.position === tilePosition) {
