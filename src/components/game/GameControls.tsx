@@ -65,7 +65,7 @@ const GameControls: React.FC<GameControlsProps> = ({
           disabled={gameCompleted}
         >
           <Hand className="mr-2 h-5 w-5" />
-          {powerUpActive ? "Cancel Power-up" : "Use Power-up"}
+          {powerUpActive ? "Cancel Switch" : "Switch Tiles"}
         </Button>
         <Button
           onClick={onNewGame}

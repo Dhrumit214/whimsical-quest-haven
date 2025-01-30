@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { GameState, Tile } from "@/types/game"; // Add Tile import
+import { GameState, Tile } from "@/types/game";
 import { toast } from "sonner";
 import {
   Select,
@@ -8,6 +8,15 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import { Button } from "@/components/ui/button";
 import GameBoard from "./game/GameBoard";
 import GameControls from "./game/GameControls";
 
@@ -284,12 +293,6 @@ const NumberPuzzle = () => {
         }))
       }));
     }, 300);
-
-    if (isComplete) {
-      toast.success("Congratulations! You solved the puzzle!", {
-        duration: 3000,
-      });
-    }
   };
 
   useEffect(() => {
@@ -339,6 +342,26 @@ const NumberPuzzle = () => {
           powerUpActive={powerUpActive}
           gameCompleted={gameState.gameCompleted}
         />
+
+        <Dialog open={gameState.gameCompleted} onOpenChange={(open) => {
+          if (!open) {
+            initializeGame(gameState.gridSize);
+          }
+        }}>
+          <DialogContent>
+            <DialogHeader>
+              <DialogTitle>Congratulations! 🎉</DialogTitle>
+              <DialogDescription>
+                You've completed the {gameState.gridSize}x{gameState.gridSize} puzzle in {gameState.moves} moves!
+              </DialogDescription>
+            </DialogHeader>
+            <DialogFooter>
+              <Button onClick={() => initializeGame(gameState.gridSize)}>
+                Play Again
+              </Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
       </div>
     </div>
   );
