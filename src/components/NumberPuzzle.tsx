@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { GameState } from "@/types/game";
+import { GameState, Tile } from "@/types/game"; // Add Tile import
 import { toast } from "sonner";
 import {
   Select,

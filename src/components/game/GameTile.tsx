@@ -23,7 +23,7 @@ const GameTile: React.FC<GameTileProps> = ({
     return {
       transform: `translate(${col * 100}%, ${row * 100}%)`,
       transition: 'transform 0.3s ease-in-out',
-      position: 'absolute',
+      position: 'absolute' as const, // Fix the position type error
       width: `calc(100% / ${gridSize})`,
       height: `calc(100% / ${gridSize})`,
     };
