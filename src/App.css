@@ -40,3 +40,18 @@
 .read-the-docs {
   color: #888;
 }
+
+.tile-animate {
+  transition: all 0.3s ease-in-out;
+}
+
+.tile-grid {
+  display: grid;
+  gap: 0.5rem;
+  position: relative;
+}
+
+.tile {
+  position: relative;
+  transition: transform 0.3s ease-in-out;
+}

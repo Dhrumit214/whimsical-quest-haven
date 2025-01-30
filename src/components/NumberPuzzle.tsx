@@ -1,16 +1,15 @@
 import React, { useState, useEffect } from "react";
-import { Button } from "@/components/ui/button";
-import { GameState, Tile } from "@/types/game";
-import GameControls from "./GameControls";
+import { GameState } from "@/types/game";
 import { toast } from "sonner";
-import { Lightbulb, ArrowLeft, ArrowRight, Hand } from "lucide-react";
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from "@/components/ui/select"
+} from "@/components/ui/select";
+import GameBoard from "./game/GameBoard";
+import GameControls from "./game/GameControls";
 
 const NumberPuzzle = () => {
   const [gameState, setGameState] = useState<GameState>({
@@ -214,7 +213,6 @@ const NumberPuzzle = () => {
         moves: gameState.moves + 1,
       });
 
-      // Reset animation flags after animation completes
       setTimeout(() => {
         setGameState(prev => ({
           ...prev,
@@ -249,10 +247,10 @@ const NumberPuzzle = () => {
 
     const newTiles = gameState.tiles.map((tile) => {
       if (tile.position === tilePosition) {
-        return { ...tile, position: emptyTile.position };
+        return { ...tile, position: emptyTile.position, isAnimating: true };
       }
       if (tile.value === 0) {
-        return { ...tile, position: tilePosition };
+        return { ...tile, position: tilePosition, isAnimating: true };
       }
       return {
         ...tile,
@@ -276,6 +274,16 @@ const NumberPuzzle = () => {
       moveHistory: newHistory,
       currentHistoryIndex: gameState.currentHistoryIndex + 1,
     });
+
+    setTimeout(() => {
+      setGameState(prev => ({
+        ...prev,
+        tiles: prev.tiles.map(tile => ({
+          ...tile,
+          isAnimating: false
+        }))
+      }));
+    }, 300);
 
     if (isComplete) {
       toast.success("Congratulations! You solved the puzzle!", {
@@ -307,103 +315,30 @@ const NumberPuzzle = () => {
           </Select>
         </div>
 
+        <GameBoard
+          gameState={gameState}
+          selectedTile={selectedTile}
+          gameCompleted={gameState.gameCompleted}
+          onTileClick={moveTile}
+        />
+
         <GameControls
-          moves={gameState.moves}
-          score={getProgressPercentage()}
-          onReset={initializeGame}
+          onUndo={undoMove}
+          onRedo={redoMove}
+          onHint={showHint}
+          onPowerUp={() => {
+            setPowerUpActive(!powerUpActive);
+            setSelectedTile(null);
+            if (!powerUpActive) {
+              toast.info("Select a tile to move it anywhere!");
+            }
+          }}
+          onNewGame={() => initializeGame(gameState.gridSize)}
+          canUndo={gameState.currentHistoryIndex > 0}
+          canRedo={gameState.currentHistoryIndex < gameState.moveHistory.length - 1}
+          powerUpActive={powerUpActive}
           gameCompleted={gameState.gameCompleted}
         />
-        
-        <div className="relative p-6 bg-white rounded-xl shadow-lg mb-4">
-          <div
-            className="grid gap-2"
-            style={{
-              gridTemplateColumns: `repeat(${gameState.gridSize}, minmax(0, 1fr))`,
-            }}
-          >
-            {gameState.tiles.map((tile) => (
-              <Button
-                key={tile.id}
-                onClick={() => moveTile(tile.position)}
-                className={`
-                  w-full h-20 text-2xl font-bold 
-                  transition-all duration-300 transform 
-                  hover:scale-105 relative
-                  ${tile.value === 0 ? "invisible" : ""}
-                  ${
-                    selectedTile === tile.position
-                      ? "ring-2 ring-yellow-400"
-                      : tile.isAnimating
-                      ? "animate-scale-in"
-                      : hintTile === tile.position
-                      ? "bg-game-accent hover:bg-game-accent/90 animate-pulse"
-                      : tile.isCorrect
-                      ? "bg-green-500 hover:bg-green-600"
-                      : "bg-game-primary hover:bg-game-primary/90"
-                  }
-                  rounded-lg shadow-md
-                `}
-                disabled={gameState.gameCompleted}
-              >
-                {tile.value || ""}
-              </Button>
-            ))}
-          </div>
-        </div>
-
-        <div className="flex gap-4 mb-4">
-          <Button
-            onClick={undoMove}
-            disabled={gameState.currentHistoryIndex <= 0}
-            className="flex-1 bg-gray-500 hover:bg-gray-600"
-          >
-            <ArrowLeft className="mr-2 h-5 w-5" />
-            Undo
-          </Button>
-          <Button
-            onClick={redoMove}
-            disabled={gameState.currentHistoryIndex >= gameState.moveHistory.length - 1}
-            className="flex-1 bg-gray-500 hover:bg-gray-600"
-          >
-            Redo
-            <ArrowRight className="ml-2 h-5 w-5" />
-          </Button>
-        </div>
-
-        <div className="flex gap-4">
-          <Button
-            onClick={showHint}
-            className="flex-1 bg-game-secondary hover:bg-game-secondary/90 text-white"
-            disabled={gameState.gameCompleted}
-          >
-            <Lightbulb className="mr-2 h-5 w-5" />
-            Show Hint
-          </Button>
-          <Button
-            onClick={() => {
-              setPowerUpActive(!powerUpActive);
-              setSelectedTile(null);
-              if (!powerUpActive) {
-                toast.info("Select a tile to move it anywhere!");
-              }
-            }}
-            className={`flex-1 ${
-              powerUpActive 
-                ? "bg-yellow-500 hover:bg-yellow-600" 
-                : "bg-game-secondary hover:bg-game-secondary/90"
-            } text-white`}
-            disabled={gameState.gameCompleted}
-          >
-            <Hand className="mr-2 h-5 w-5" />
-            {powerUpActive ? "Cancel Power-up" : "Use Power-up"}
-          </Button>
-          <Button
-            onClick={() => initializeGame(gameState.gridSize)}
-            className="flex-1 bg-game-accent hover:bg-game-accent/90 text-white"
-          >
-            {gameState.gameCompleted ? "Play Again" : "New Game"}
-          </Button>
-        </div>
       </div>
     </div>
   );
