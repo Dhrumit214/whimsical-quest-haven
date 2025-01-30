@@ -3,7 +3,7 @@ import { Button } from "@/components/ui/button";
 import { GameState, Tile } from "@/types/game";
 import GameControls from "./GameControls";
 import { toast } from "sonner";
-import { Lightbulb, ArrowLeft, ArrowRight, HandGrabbing } from "lucide-react";
+import { Lightbulb, ArrowLeft, ArrowRight, Hand } from "lucide-react";
 import {
   Select,
   SelectContent,
@@ -373,7 +373,7 @@ const NumberPuzzle = () => {
             } text-white`}
             disabled={gameState.gameCompleted}
           >
-            <HandGrabbing className="mr-2 h-5 w-5" />
+            <Hand className="mr-2 h-5 w-5" />
             {powerUpActive ? "Cancel Power-up" : "Use Power-up"}
           </Button>
           <Button
