@@ -12,6 +12,7 @@ const NumberPuzzle = () => {
     gameCompleted: false,
     gridSize: 3,
   });
+  const [hintTile, setHintTile] = useState<number | null>(null);
 
   const initializeGame = () => {
     const totalTiles = gameState.gridSize * gameState.gridSize;
@@ -42,6 +43,42 @@ const NumberPuzzle = () => {
     return tiles.every((tile) => tile.value === 0 || tile.position === tile.value - 1);
   };
 
+  const findBestMove = () => {
+    const emptyTile = gameState.tiles.find((tile) => tile.value === 0);
+    if (!emptyTile) return null;
+
+    const movableTiles = gameState.tiles.filter((tile) =>
+      canMoveTile(tile.position, emptyTile.position)
+    );
+
+    // Simple heuristic: choose the tile that would be closest to its correct position after moving
+    let bestTile = null;
+    let minDistance = Infinity;
+
+    movableTiles.forEach((tile) => {
+      const targetRow = Math.floor((tile.value - 1) / gameState.gridSize);
+      const targetCol = (tile.value - 1) % gameState.gridSize;
+      const currentRow = Math.floor(emptyTile.position / gameState.gridSize);
+      const currentCol = emptyTile.position % gameState.gridSize;
+      const distance = Math.abs(targetRow - currentRow) + Math.abs(targetCol - currentCol);
+
+      if (distance < minDistance) {
+        minDistance = distance;
+        bestTile = tile;
+      }
+    });
+
+    return bestTile?.position ?? null;
+  };
+
+  const showHint = () => {
+    const bestMove = findBestMove();
+    if (bestMove !== null) {
+      setHintTile(bestMove);
+      setTimeout(() => setHintTile(null), 2000); // Clear hint after 2 seconds
+    }
+  };
+
   const canMoveTile = (tilePosition: number, emptyPosition: number) => {
     const row1 = Math.floor(tilePosition / gameState.gridSize);
     const col1 = tilePosition % gameState.gridSize;
@@ -61,6 +98,8 @@ const NumberPuzzle = () => {
     if (!emptyTile) return;
 
     if (!canMoveTile(tilePosition, emptyTile.position)) return;
+
+    setHintTile(null); // Clear hint when a move is made
 
     const newTiles = gameState.tiles.map((tile) => {
       if (tile.position === tilePosition) {
@@ -102,36 +141,53 @@ const NumberPuzzle = () => {
           gameCompleted={gameState.gameCompleted}
         />
         
-        <div
-          className="grid gap-2"
-          style={{
-            gridTemplateColumns: `repeat(${gameState.gridSize}, minmax(0, 1fr))`,
-          }}
-        >
-          {gameState.tiles.map((tile) => {
-            const row = Math.floor(tile.position / gameState.gridSize);
-            const col = tile.position % gameState.gridSize;
-            
-            return (
-              <Button
-                key={tile.id}
-                onClick={() => moveTile(tile.position)}
-                className={`w-full h-20 text-2xl font-bold transition-all duration-300 transform hover:scale-105 ${
-                  tile.value === 0
-                    ? "invisible"
-                    : "bg-game-primary hover:bg-game-primary/90"
-                }`}
-                style={{
-                  gridRow: row + 1,
-                  gridColumn: col + 1,
-                }}
-                disabled={gameState.gameCompleted}
-              >
-                {tile.value || ""}
-              </Button>
-            );
-          })}
+        <div className="relative p-6 bg-white rounded-xl shadow-lg mb-4">
+          <div
+            className="grid gap-2"
+            style={{
+              gridTemplateColumns: `repeat(${gameState.gridSize}, minmax(0, 1fr))`,
+            }}
+          >
+            {gameState.tiles.map((tile) => {
+              const row = Math.floor(tile.position / gameState.gridSize);
+              const col = tile.position % gameState.gridSize;
+              
+              return (
+                <Button
+                  key={tile.id}
+                  onClick={() => moveTile(tile.position)}
+                  className={`
+                    w-full h-20 text-2xl font-bold 
+                    transition-all duration-300 transform 
+                    hover:scale-105 relative
+                    ${tile.value === 0 ? "invisible" : ""}
+                    ${
+                      hintTile === tile.position
+                        ? "bg-game-accent hover:bg-game-accent/90 animate-pulse"
+                        : "bg-game-primary hover:bg-game-primary/90"
+                    }
+                    rounded-lg shadow-md
+                  `}
+                  style={{
+                    gridRow: row + 1,
+                    gridColumn: col + 1,
+                  }}
+                  disabled={gameState.gameCompleted}
+                >
+                  {tile.value || ""}
+                </Button>
+              );
+            })}
+          </div>
         </div>
+
+        <Button
+          onClick={showHint}
+          className="w-full bg-game-secondary hover:bg-game-secondary/90 text-white font-medium py-3 rounded-lg shadow-md transition-all duration-300"
+          disabled={gameState.gameCompleted}
+        >
+          Show Hint
+        </Button>
       </div>
     </div>
   );
