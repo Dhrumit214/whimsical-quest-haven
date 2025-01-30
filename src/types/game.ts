@@ -3,6 +3,7 @@ export interface Tile {
   value: number;
   position: number;
   isCorrect?: boolean;
+  isAnimating?: boolean;
 }
 
 export interface GameState {
