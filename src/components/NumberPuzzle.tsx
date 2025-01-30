@@ -181,13 +181,22 @@ const NumberPuzzle = () => {
           </div>
         </div>
 
-        <Button
-          onClick={showHint}
-          className="w-full bg-game-secondary hover:bg-game-secondary/90 text-white font-medium py-3 rounded-lg shadow-md transition-all duration-300"
-          disabled={gameState.gameCompleted}
-        >
-          Show Hint
-        </Button>
+        <div className="flex gap-4">
+          <Button
+            onClick={showHint}
+            className="flex-1 bg-game-secondary hover:bg-game-secondary/90 text-white font-medium py-3 rounded-lg shadow-md transition-all duration-300"
+            disabled={gameState.gameCompleted}
+          >
+            <Lightbulb className="mr-2 h-5 w-5" />
+            Show Hint
+          </Button>
+          <Button
+            onClick={initializeGame}
+            className="flex-1 bg-game-accent hover:bg-game-accent/90 text-white font-medium py-3 rounded-lg shadow-md transition-all duration-300"
+          >
+            {gameState.gameCompleted ? "Play Again" : "New Game"}
+          </Button>
+        </div>
       </div>
     </div>
   );

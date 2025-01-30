@@ -1,4 +1,5 @@
 import { Button } from "@/components/ui/button";
+import { Lightbulb } from "lucide-react";
 
 interface GameControlsProps {
   moves: number;
@@ -16,12 +17,6 @@ const GameControls = ({ moves, onReset, gameCompleted }: GameControlsProps) => {
           <span className="font-bold text-game-primary">{moves}</span>
         </div>
       </div>
-      <Button
-        onClick={onReset}
-        className="bg-game-accent hover:bg-game-accent/90 text-white w-full py-3 rounded-lg shadow-md transition-all duration-300"
-      >
-        {gameCompleted ? "Play Again" : "New Game"}
-      </Button>
     </div>
   );
 };
