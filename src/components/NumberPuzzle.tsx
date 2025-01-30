@@ -3,7 +3,7 @@ import { Button } from "@/components/ui/button";
 import { GameState, Tile } from "@/types/game";
 import GameControls from "./GameControls";
 import { toast } from "sonner";
-import { Lightbulb, ArrowLeft, ArrowRight } from "lucide-react";
+import { Lightbulb, ArrowLeft, ArrowRight, HandGrabbing } from "lucide-react";
 import {
   Select,
   SelectContent,
@@ -24,6 +24,8 @@ const NumberPuzzle = () => {
   });
   const [hintTile, setHintTile] = useState<number | null>(null);
   const [previousHints, setPreviousHints] = useState<Set<number>>(new Set());
+  const [powerUpActive, setPowerUpActive] = useState(false);
+  const [selectedTile, setSelectedTile] = useState<number | null>(null);
 
   const initializeGame = (size: number = gameState.gridSize) => {
     const totalTiles = size * size;
@@ -61,7 +63,6 @@ const NumberPuzzle = () => {
   };
 
   const findBestMove = (attemptCount = 0) => {
-    // Prevent infinite recursion by limiting attempts
     if (attemptCount > 1) return null;
 
     const emptyTile = gameState.tiles.find((tile) => tile.value === 0);
@@ -75,7 +76,6 @@ const NumberPuzzle = () => {
     let bestScore = -Infinity;
 
     movableTiles.forEach((tile) => {
-      // Skip if this tile was recently suggested
       if (previousHints.has(tile.position)) {
         return;
       }
@@ -86,7 +86,6 @@ const NumberPuzzle = () => {
       const targetCol = (tile.value - 1) % gameState.gridSize;
       const currentDistance = Math.abs(currentRow - targetRow) + Math.abs(currentCol - targetCol);
 
-      // Only consider tiles that aren't in their correct position
       if (currentDistance === 0) {
         return;
       }
@@ -104,7 +103,6 @@ const NumberPuzzle = () => {
       }
     });
 
-    // If no good moves found, clear previous hints and try again once
     if (!bestTile && previousHints.size > 0 && attemptCount === 0) {
       setPreviousHints(new Set());
       return findBestMove(attemptCount + 1);
@@ -185,8 +183,42 @@ const NumberPuzzle = () => {
     }
   };
 
+  const handleTilePowerUp = (tilePosition: number) => {
+    if (!powerUpActive) return;
+
+    if (selectedTile === null) {
+      setSelectedTile(tilePosition);
+      toast.info("Now click where you want to place this tile");
+    } else {
+      const newTiles = gameState.tiles.map(tile => {
+        if (tile.position === selectedTile) {
+          return { ...tile, position: tilePosition };
+        }
+        if (tile.position === tilePosition) {
+          return { ...tile, position: selectedTile };
+        }
+        return tile;
+      });
+
+      setGameState({
+        ...gameState,
+        tiles: newTiles,
+        moves: gameState.moves + 1,
+      });
+
+      setPowerUpActive(false);
+      setSelectedTile(null);
+      toast.success("Tile moved successfully!");
+    }
+  };
+
   const moveTile = (tilePosition: number) => {
     if (!gameState.gameStarted || gameState.gameCompleted) return;
+
+    if (powerUpActive) {
+      handleTilePowerUp(tilePosition);
+      return;
+    }
 
     const emptyTile = gameState.tiles.find((tile) => tile.value === 0);
     if (!emptyTile) return;
@@ -270,46 +302,31 @@ const NumberPuzzle = () => {
               gridTemplateColumns: `repeat(${gameState.gridSize}, minmax(0, 1fr))`,
             }}
           >
-            {gameState.tiles.map((tile) => {
-              const row = Math.floor(tile.position / gameState.gridSize);
-              const col = tile.position % gameState.gridSize;
-              const correctPosition = tile.value - 1;
-              const correctRow = Math.floor(correctPosition / gameState.gridSize);
-              const correctCol = correctPosition % gameState.gridSize;
-              
-              return (
-                <Button
-                  key={tile.id}
-                  onClick={() => moveTile(tile.position)}
-                  className={`
-                    w-full h-20 text-2xl font-bold 
-                    transition-all duration-300 transform 
-                    hover:scale-105 relative
-                    ${tile.value === 0 ? "invisible" : ""}
-                    ${
-                      hintTile === tile.position
-                        ? "bg-game-accent hover:bg-game-accent/90 animate-pulse"
-                        : tile.isCorrect
-                        ? "bg-green-500 hover:bg-green-600"
-                        : "bg-game-primary hover:bg-game-primary/90"
-                    }
-                    rounded-lg shadow-md
-                  `}
-                  style={{
-                    gridRow: row + 1,
-                    gridColumn: col + 1,
-                  }}
-                  disabled={gameState.gameCompleted}
-                >
-                  {tile.value || ""}
-                  {tile.value !== 0 && (
-                    <span className="absolute top-1 right-1 text-xs opacity-50">
-                      {`${correctRow + 1},${correctCol + 1}`}
-                    </span>
-                  )}
-                </Button>
-              );
-            })}
+            {gameState.tiles.map((tile) => (
+              <Button
+                key={tile.id}
+                onClick={() => moveTile(tile.position)}
+                className={`
+                  w-full h-20 text-2xl font-bold 
+                  transition-all duration-300 transform 
+                  hover:scale-105 relative
+                  ${tile.value === 0 ? "invisible" : ""}
+                  ${
+                    selectedTile === tile.position
+                      ? "ring-2 ring-yellow-400"
+                      : hintTile === tile.position
+                      ? "bg-game-accent hover:bg-game-accent/90 animate-pulse"
+                      : tile.isCorrect
+                      ? "bg-green-500 hover:bg-green-600"
+                      : "bg-game-primary hover:bg-game-primary/90"
+                  }
+                  rounded-lg shadow-md
+                `}
+                disabled={gameState.gameCompleted}
+              >
+                {tile.value || ""}
+              </Button>
+            ))}
           </div>
         </div>
 
@@ -335,15 +352,33 @@ const NumberPuzzle = () => {
         <div className="flex gap-4">
           <Button
             onClick={showHint}
-            className="flex-1 bg-game-secondary hover:bg-game-secondary/90 text-white font-medium py-3 rounded-lg shadow-md transition-all duration-300"
+            className="flex-1 bg-game-secondary hover:bg-game-secondary/90 text-white"
             disabled={gameState.gameCompleted}
           >
             <Lightbulb className="mr-2 h-5 w-5" />
             Show Hint
           </Button>
           <Button
+            onClick={() => {
+              setPowerUpActive(!powerUpActive);
+              setSelectedTile(null);
+              if (!powerUpActive) {
+                toast.info("Select a tile to move it anywhere!");
+              }
+            }}
+            className={`flex-1 ${
+              powerUpActive 
+                ? "bg-yellow-500 hover:bg-yellow-600" 
+                : "bg-game-secondary hover:bg-game-secondary/90"
+            } text-white`}
+            disabled={gameState.gameCompleted}
+          >
+            <HandGrabbing className="mr-2 h-5 w-5" />
+            {powerUpActive ? "Cancel Power-up" : "Use Power-up"}
+          </Button>
+          <Button
             onClick={() => initializeGame(gameState.gridSize)}
-            className="flex-1 bg-game-accent hover:bg-game-accent/90 text-white font-medium py-3 rounded-lg shadow-md transition-all duration-300"
+            className="flex-1 bg-game-accent hover:bg-game-accent/90 text-white"
           >
             {gameState.gameCompleted ? "Play Again" : "New Game"}
           </Button>
