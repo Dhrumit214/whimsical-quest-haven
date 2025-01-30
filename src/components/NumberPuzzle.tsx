@@ -3,6 +3,9 @@ import { Button } from "@/components/ui/button";
 import { GameState, Tile } from "@/types/game";
 import GameControls from "./GameControls";
 import { toast } from "sonner";
+import { Lightbulb } from "lucide-react";
+
+// ... keep existing code (all the functions and state management)
 
 const NumberPuzzle = () => {
   const [gameState, setGameState] = useState<GameState>({
