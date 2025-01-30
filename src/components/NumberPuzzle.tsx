@@ -5,8 +5,6 @@ import GameControls from "./GameControls";
 import { toast } from "sonner";
 import { Lightbulb } from "lucide-react";
 
-// ... keep existing code (all the functions and state management)
-
 const NumberPuzzle = () => {
   const [gameState, setGameState] = useState<GameState>({
     tiles: [],
@@ -54,19 +52,30 @@ const NumberPuzzle = () => {
       canMoveTile(tile.position, emptyTile.position)
     );
 
-    // Simple heuristic: choose the tile that would be closest to its correct position after moving
     let bestTile = null;
-    let minDistance = Infinity;
+    let bestScore = -Infinity;
 
     movableTiles.forEach((tile) => {
+      // Calculate how far this tile is from its correct position
+      const currentRow = Math.floor(tile.position / gameState.gridSize);
+      const currentCol = tile.position % gameState.gridSize;
       const targetRow = Math.floor((tile.value - 1) / gameState.gridSize);
       const targetCol = (tile.value - 1) % gameState.gridSize;
-      const currentRow = Math.floor(emptyTile.position / gameState.gridSize);
-      const currentCol = emptyTile.position % gameState.gridSize;
-      const distance = Math.abs(targetRow - currentRow) + Math.abs(targetCol - currentCol);
+      const currentDistance = Math.abs(currentRow - targetRow) + Math.abs(currentCol - targetCol);
 
-      if (distance < minDistance) {
-        minDistance = distance;
+      // Calculate where the tile would be after moving
+      const newRow = Math.floor(emptyTile.position / gameState.gridSize);
+      const newCol = emptyTile.position % gameState.gridSize;
+      const newDistance = Math.abs(newRow - targetRow) + Math.abs(newCol - targetCol);
+
+      // Score is better if moving the tile gets it closer to its target position
+      const improvement = currentDistance - newDistance;
+      
+      // Add a bonus for tiles that are further from their target position
+      const score = improvement + (currentDistance / 10);
+
+      if (score > bestScore) {
+        bestScore = score;
         bestTile = tile;
       }
     });
