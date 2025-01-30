@@ -23,7 +23,7 @@ const GameTile: React.FC<GameTileProps> = ({
     return {
       transform: `translate(${col * 100}%, ${row * 100}%)`,
       transition: 'transform 0.3s ease-in-out',
-      position: 'absolute' as const, // Fix the position type error
+      position: 'absolute' as const,
       width: `calc(100% / ${gridSize})`,
       height: `calc(100% / ${gridSize})`,
     };
@@ -36,17 +36,22 @@ const GameTile: React.FC<GameTileProps> = ({
         w-full h-20 text-2xl font-bold 
         transition-all duration-300
         hover:scale-105 relative tile
+        shadow-md hover:shadow-xl
+        transform hover:translate-y-[-2px]
         ${tile.value === 0 ? "invisible" : ""}
         ${
           isSelected
-            ? "ring-2 ring-yellow-400"
+            ? "bg-[#FEF7CD] text-amber-700 ring-2 ring-yellow-400"
             : tile.isAnimating
             ? "animate-scale-in"
             : tile.isCorrect
-            ? "bg-green-500 hover:bg-green-600"
-            : "bg-game-primary hover:bg-game-primary/90"
+            ? "bg-gradient-to-br from-[#F2FCE2] to-[#D4E8C1] text-green-700"
+            : "bg-gradient-to-br from-[#E5DEFF] to-[#C5B8FF] text-indigo-700 hover:from-[#E8E2FF] hover:to-[#CAC0FF]"
         }
-        rounded-lg shadow-md
+        rounded-lg
+        font-['Nunito']
+        active:transform active:scale-95
+        before:absolute before:inset-0 before:rounded-lg before:shadow-inner before:pointer-events-none
       `}
       disabled={disabled}
       style={getPositionStyle()}

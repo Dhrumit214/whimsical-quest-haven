@@ -60,6 +60,14 @@ export default {
         },
       },
       keyframes: {
+        "accordion-down": {
+          from: { height: "0" },
+          to: { height: "var(--radix-accordion-content-height)" },
+        },
+        "accordion-up": {
+          from: { height: "var(--radix-accordion-content-height)" },
+          to: { height: "0" },
+        },
         "card-flip": {
           "0%, 100%": { transform: "rotateY(0deg)" },
           "100%": { transform: "rotateY(180deg)" },
@@ -71,6 +79,8 @@ export default {
         },
       },
       animation: {
+        "accordion-down": "accordion-down 0.2s ease-out",
+        "accordion-up": "accordion-up 0.2s ease-out",
         "card-flip": "card-flip 0.6s ease-in-out",
         "scale-up": "scale-up 0.3s ease-in-out",
       },
