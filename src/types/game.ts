@@ -1,14 +1,13 @@
-export interface Card {
+export interface Tile {
   id: number;
-  value: string;
-  isFlipped: boolean;
-  isMatched: boolean;
+  value: number;
+  position: number;
 }
 
 export interface GameState {
-  cards: Card[];
-  score: number;
+  tiles: Tile[];
   moves: number;
   gameStarted: boolean;
   gameCompleted: boolean;
+  gridSize: number;
 }

@@ -1,7 +1,7 @@
-import MemoryGame from "@/components/MemoryGame";
+import NumberPuzzle from "@/components/NumberPuzzle";
 
 const Index = () => {
-  return <MemoryGame />;
+  return <NumberPuzzle />;
 };
 
 export default Index;
