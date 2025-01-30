@@ -2,6 +2,7 @@ import React, { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { GameState, Tile } from "@/types/game";
 import GameControls from "./GameControls";
+import { toast } from "sonner";
 
 const NumberPuzzle = () => {
   const [gameState, setGameState] = useState<GameState>({
@@ -79,6 +80,12 @@ const NumberPuzzle = () => {
       moves: gameState.moves + 1,
       gameCompleted: isComplete,
     });
+
+    if (isComplete) {
+      toast.success("Congratulations! You solved the puzzle!", {
+        duration: 3000,
+      });
+    }
   };
 
   useEffect(() => {
@@ -105,7 +112,7 @@ const NumberPuzzle = () => {
             <Button
               key={tile.id}
               onClick={() => moveTile(tile.position)}
-              className={`w-full h-20 text-2xl font-bold ${
+              className={`w-full h-20 text-2xl font-bold transition-all duration-300 transform hover:scale-105 ${
                 tile.value === 0
                   ? "invisible"
                   : "bg-game-primary hover:bg-game-primary/90"
