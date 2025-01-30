@@ -60,7 +60,10 @@ const NumberPuzzle = () => {
     return tiles.every((tile) => tile.value === 0 || tile.position === tile.value - 1);
   };
 
-  const findBestMove = () => {
+  const findBestMove = (attemptCount = 0) => {
+    // Prevent infinite recursion by limiting attempts
+    if (attemptCount > 1) return null;
+
     const emptyTile = gameState.tiles.find((tile) => tile.value === 0);
     if (!emptyTile) return null;
 
@@ -101,10 +104,10 @@ const NumberPuzzle = () => {
       }
     });
 
-    // If no good moves found, clear previous hints and try again
-    if (!bestTile && previousHints.size > 0) {
+    // If no good moves found, clear previous hints and try again once
+    if (!bestTile && previousHints.size > 0 && attemptCount === 0) {
       setPreviousHints(new Set());
-      return findBestMove();
+      return findBestMove(attemptCount + 1);
     }
 
     return bestTile?.position ?? null;
