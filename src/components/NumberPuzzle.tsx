@@ -3,7 +3,14 @@ import { Button } from "@/components/ui/button";
 import { GameState, Tile } from "@/types/game";
 import GameControls from "./GameControls";
 import { toast } from "sonner";
-import { Lightbulb } from "lucide-react";
+import { Lightbulb, ArrowLeft, ArrowRight } from "lucide-react";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select"
 
 const NumberPuzzle = () => {
   const [gameState, setGameState] = useState<GameState>({
@@ -12,25 +19,30 @@ const NumberPuzzle = () => {
     gameStarted: false,
     gameCompleted: false,
     gridSize: 3,
+    moveHistory: [],
+    currentHistoryIndex: -1,
   });
   const [hintTile, setHintTile] = useState<number | null>(null);
   const [previousHints, setPreviousHints] = useState<Set<number>>(new Set());
 
-  const initializeGame = () => {
-    const totalTiles = gameState.gridSize * gameState.gridSize;
+  const initializeGame = (size: number = gameState.gridSize) => {
+    const totalTiles = size * size;
     const initialTiles: Tile[] = Array.from({ length: totalTiles - 1 }, (_, i) => ({
       id: i + 1,
       value: i + 1,
       position: i,
+      isCorrect: true,
     }));
     
-    // Add empty tile
     initialTiles.push({ id: totalTiles, value: 0, position: totalTiles - 1 });
     
-    // Shuffle tiles
     const shuffledTiles = [...initialTiles]
       .sort(() => Math.random() - 0.5)
-      .map((tile, index) => ({ ...tile, position: index }));
+      .map((tile, index) => ({ 
+        ...tile, 
+        position: index,
+        isCorrect: tile.value === 0 ? false : index === tile.value - 1
+      }));
 
     setGameState({
       ...gameState,
@@ -38,6 +50,9 @@ const NumberPuzzle = () => {
       moves: 0,
       gameStarted: true,
       gameCompleted: false,
+      gridSize: size,
+      moveHistory: [],
+      currentHistoryIndex: -1,
     });
   };
 
@@ -116,6 +131,57 @@ const NumberPuzzle = () => {
     );
   };
 
+  const getProgressPercentage = () => {
+    const correctTiles = gameState.tiles.filter(
+      (tile) => tile.value !== 0 && tile.position === tile.value - 1
+    ).length;
+    return Math.round((correctTiles / (gameState.tiles.length - 1)) * 100);
+  };
+
+  const undoMove = () => {
+    if (gameState.currentHistoryIndex > 0) {
+      const previousMove = gameState.moveHistory[gameState.currentHistoryIndex - 1];
+      const newTiles = gameState.tiles.map(tile => {
+        if (tile.position === previousMove[0]) {
+          return { ...tile, position: previousMove[1] };
+        }
+        if (tile.position === previousMove[1]) {
+          return { ...tile, position: previousMove[0] };
+        }
+        return tile;
+      });
+
+      setGameState({
+        ...gameState,
+        tiles: newTiles,
+        moves: gameState.moves - 1,
+        currentHistoryIndex: gameState.currentHistoryIndex - 1,
+      });
+    }
+  };
+
+  const redoMove = () => {
+    if (gameState.currentHistoryIndex < gameState.moveHistory.length - 1) {
+      const nextMove = gameState.moveHistory[gameState.currentHistoryIndex + 1];
+      const newTiles = gameState.tiles.map(tile => {
+        if (tile.position === nextMove[0]) {
+          return { ...tile, position: nextMove[1] };
+        }
+        if (tile.position === nextMove[1]) {
+          return { ...tile, position: nextMove[0] };
+        }
+        return tile;
+      });
+
+      setGameState({
+        ...gameState,
+        tiles: newTiles,
+        moves: gameState.moves + 1,
+        currentHistoryIndex: gameState.currentHistoryIndex + 1,
+      });
+    }
+  };
+
   const moveTile = (tilePosition: number) => {
     if (!gameState.gameStarted || gameState.gameCompleted) return;
 
@@ -125,7 +191,7 @@ const NumberPuzzle = () => {
     if (!canMoveTile(tilePosition, emptyTile.position)) return;
 
     setHintTile(null);
-    setPreviousHints(new Set()); // Clear previous hints after a move
+    setPreviousHints(new Set());
 
     const newTiles = gameState.tiles.map((tile) => {
       if (tile.position === tilePosition) {
@@ -134,8 +200,17 @@ const NumberPuzzle = () => {
       if (tile.value === 0) {
         return { ...tile, position: tilePosition };
       }
-      return tile;
+      return {
+        ...tile,
+        isCorrect: tile.value !== 0 && (
+          tile.position === tile.value - 1 ||
+          (tile.position === tilePosition && emptyTile.position === tile.value - 1)
+        )
+      };
     });
+
+    const newHistory = gameState.moveHistory.slice(0, gameState.currentHistoryIndex + 1);
+    newHistory.push([tilePosition, emptyTile.position]);
 
     const isComplete = checkWin(newTiles);
 
@@ -144,6 +219,8 @@ const NumberPuzzle = () => {
       tiles: newTiles,
       moves: gameState.moves + 1,
       gameCompleted: isComplete,
+      moveHistory: newHistory,
+      currentHistoryIndex: gameState.currentHistoryIndex + 1,
     });
 
     if (isComplete) {
@@ -160,9 +237,25 @@ const NumberPuzzle = () => {
   return (
     <div className="flex flex-col items-center justify-center min-h-screen bg-background p-4">
       <div className="w-full max-w-md">
+        <div className="mb-4">
+          <Select
+            value={gameState.gridSize.toString()}
+            onValueChange={(value) => initializeGame(parseInt(value))}
+          >
+            <SelectTrigger className="w-full">
+              <SelectValue placeholder="Select difficulty" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="2">Easy (2x2)</SelectItem>
+              <SelectItem value="3">Medium (3x3)</SelectItem>
+              <SelectItem value="4">Hard (4x4)</SelectItem>
+            </SelectContent>
+          </Select>
+        </div>
+
         <GameControls
           moves={gameState.moves}
-          score={0}
+          score={getProgressPercentage()}
           onReset={initializeGame}
           gameCompleted={gameState.gameCompleted}
         />
@@ -177,6 +270,9 @@ const NumberPuzzle = () => {
             {gameState.tiles.map((tile) => {
               const row = Math.floor(tile.position / gameState.gridSize);
               const col = tile.position % gameState.gridSize;
+              const correctPosition = tile.value - 1;
+              const correctRow = Math.floor(correctPosition / gameState.gridSize);
+              const correctCol = correctPosition % gameState.gridSize;
               
               return (
                 <Button
@@ -190,6 +286,8 @@ const NumberPuzzle = () => {
                     ${
                       hintTile === tile.position
                         ? "bg-game-accent hover:bg-game-accent/90 animate-pulse"
+                        : tile.isCorrect
+                        ? "bg-green-500 hover:bg-green-600"
                         : "bg-game-primary hover:bg-game-primary/90"
                     }
                     rounded-lg shadow-md
@@ -201,10 +299,34 @@ const NumberPuzzle = () => {
                   disabled={gameState.gameCompleted}
                 >
                   {tile.value || ""}
+                  {tile.value !== 0 && (
+                    <span className="absolute top-1 right-1 text-xs opacity-50">
+                      {`${correctRow + 1},${correctCol + 1}`}
+                    </span>
+                  )}
                 </Button>
               );
             })}
           </div>
+        </div>
+
+        <div className="flex gap-4 mb-4">
+          <Button
+            onClick={undoMove}
+            disabled={gameState.currentHistoryIndex <= 0}
+            className="flex-1 bg-gray-500 hover:bg-gray-600"
+          >
+            <ArrowLeft className="mr-2 h-5 w-5" />
+            Undo
+          </Button>
+          <Button
+            onClick={redoMove}
+            disabled={gameState.currentHistoryIndex >= gameState.moveHistory.length - 1}
+            className="flex-1 bg-gray-500 hover:bg-gray-600"
+          >
+            Redo
+            <ArrowRight className="ml-2 h-5 w-5" />
+          </Button>
         </div>
 
         <div className="flex gap-4">
@@ -217,7 +339,7 @@ const NumberPuzzle = () => {
             Show Hint
           </Button>
           <Button
-            onClick={initializeGame}
+            onClick={() => initializeGame(gameState.gridSize)}
             className="flex-1 bg-game-accent hover:bg-game-accent/90 text-white font-medium py-3 rounded-lg shadow-md transition-all duration-300"
           >
             {gameState.gameCompleted ? "Play Again" : "New Game"}

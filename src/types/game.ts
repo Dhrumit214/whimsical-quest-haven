@@ -2,6 +2,7 @@ export interface Tile {
   id: number;
   value: number;
   position: number;
+  isCorrect?: boolean;
 }
 
 export interface GameState {
@@ -10,11 +11,11 @@ export interface GameState {
   gameStarted: boolean;
   gameCompleted: boolean;
   gridSize: number;
+  moveHistory: number[][];
+  currentHistoryIndex: number;
 }
 
-export interface Card {
-  id: number;
-  value: string | number;
-  isFlipped: boolean;
-  isMatched: boolean;
+export interface MoveDirection {
+  from: number;
+  to: number;
 }
