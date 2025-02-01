@@ -23,7 +23,7 @@ const GameTile: React.FC<GameTileProps> = ({
     return {
       transform: `translate(${col * 100}%, ${row * 100}%)`,
       transition: 'transform 0.3s ease-in-out',
-      position: 'absolute' as const, // Fix the position type error
+      position: 'absolute' as const,
       width: `calc(100% / ${gridSize})`,
       height: `calc(100% / ${gridSize})`,
     };
@@ -33,7 +33,7 @@ const GameTile: React.FC<GameTileProps> = ({
     <Button
       onClick={onClick}
       className={`
-        w-full h-20 text-2xl font-bold 
+        w-full h-20 text-3xl font-bold 
         transition-all duration-300
         hover:scale-105 relative tile
         ${tile.value === 0 ? "invisible" : ""}
