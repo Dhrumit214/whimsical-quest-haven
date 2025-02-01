@@ -33,20 +33,23 @@ const GameTile: React.FC<GameTileProps> = ({
     <Button
       onClick={onClick}
       className={`
-        w-full h-20 text-3xl font-bold 
+        w-full h-20 text-4xl font-bold 
         transition-all duration-300
         hover:scale-105 relative tile
         ${tile.value === 0 ? "invisible" : ""}
         ${
           isSelected
-            ? "ring-2 ring-yellow-400"
+            ? "ring-2 ring-yellow-400 bg-[#D946EF] hover:bg-[#D946EF]/90"
             : tile.isAnimating
             ? "animate-scale-in"
             : tile.isCorrect
-            ? "bg-green-500 hover:bg-green-600"
-            : "bg-game-primary hover:bg-game-primary/90"
+            ? "bg-[#8B5CF6] hover:bg-[#8B5CF6]/90"
+            : "bg-[#0EA5E9] hover:bg-[#0EA5E9]/90"
         }
-        rounded-lg shadow-md
+        rounded-lg shadow-lg
+        text-white
+        border-none
+        transform hover:-translate-y-1
       `}
       disabled={disabled}
       style={getPositionStyle()}
