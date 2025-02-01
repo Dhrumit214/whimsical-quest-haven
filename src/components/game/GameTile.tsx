@@ -43,7 +43,7 @@ const GameTile: React.FC<GameTileProps> = ({
             : tile.isAnimating
             ? "animate-scale-in"
             : tile.isCorrect
-            ? "bg-[#8B5CF6] hover:bg-[#8B5CF6]/90"
+            ? "bg-emerald-500 hover:bg-emerald-600"
             : "bg-[#0EA5E9] hover:bg-[#0EA5E9]/90"
         }
         rounded-lg shadow-lg
